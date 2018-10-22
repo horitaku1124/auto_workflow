@@ -14,7 +14,6 @@ class CommandThread(var commandPath: String) : Thread() {
       var line = reader.readLine()
       if (line == null) {
         Thread.sleep(1000)
-        println(child.isAlive)
       } else {
         println(line)
       }
