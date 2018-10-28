@@ -8,13 +8,15 @@ import javafx.scene.control.TextArea
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.HBox
 import javafx.stage.Stage
+import org.xml.sax.InputSource
+import javax.xml.parsers.DocumentBuilderFactory
 
 class GuiMain : Application() {
   private var execButton: Button = Button("Exe")
   private var commandEdit: TextArea = TextArea("")
   private var logPath: TextArea = TextArea("")
   private val listView = ListView<String>()
-  private var commands = mutableListOf("tail -f /var/log/system.log", "ping 192.168.1.1", "c")
+  private var commands = arrayListOf<String>()
   private var threads = arrayOfNulls<CommandThread>(3)
 
   override fun start(primaryStage: Stage) {
@@ -23,9 +25,13 @@ class GuiMain : Application() {
     val mainPane = BorderPane()
     val rightPane = BorderPane()
 
-    listView.items.add("Item 1")
-    listView.items.add("Item 2")
-    listView.items.add("Item 3")
+    var tasks = getTasks("./src/main/resources/tasks.xml")
+
+    for (task in tasks) {
+      listView.items.add(task.first)
+      commands.add(task.second!!)
+    }
+
 
     listView.setOnMouseClicked {
       var index = listView.selectionModel.selectedIndices[0]
@@ -62,6 +68,31 @@ class GuiMain : Application() {
     val scene = Scene(mainPane, 600.0, 400.0)
     primaryStage.scene = scene
     primaryStage.show()
+  }
+
+  fun getTasks(filePath: String): ArrayList<Pair<String?, String?>> {
+    val factory = DocumentBuilderFactory.newInstance()
+
+    factory.isIgnoringComments = true
+    factory.isIgnoringElementContentWhitespace = true
+    factory.isValidating = false
+
+    val builder = factory.newDocumentBuilder()
+
+    var list:ArrayList<Pair<String?, String?>> = arrayListOf()
+
+    var dom = builder.parse(InputSource(filePath))
+    var elems = dom.getElementsByTagName("task")
+
+    for (i in 0 until elems.length) {
+      var elm = elems.item(i)
+      var attr = elm.attributes
+      var name = attr.getNamedItem("name").textContent
+      var task = Pair(name, elm.textContent.trim())
+      list.add(task)
+    }
+
+    return list
   }
 }
 
