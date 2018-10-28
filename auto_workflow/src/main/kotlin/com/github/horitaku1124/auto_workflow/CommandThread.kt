@@ -9,13 +9,17 @@ class CommandThread(var commandPath: String) : Thread() {
     val child = Runtime.getRuntime().exec(commandPath)
 //    child.waitFor()
 
-    val reader = BufferedReader(InputStreamReader(child.getInputStream()))
+    val stdin = BufferedReader(InputStreamReader(child.inputStream))
+    val stderr = BufferedReader(InputStreamReader(child.errorStream))
     while(child.isAlive) {
-      var line = reader.readLine()
-      if (line == null) {
-        Thread.sleep(1000)
-      } else {
+      val line = stdin.readLine()
+      val line2 = stderr.readLine()
+      if (line != null) {
         println(line)
+      } else if (line2 != null) {
+        System.err.println(line2)
+      } else {
+        Thread.sleep(1000)
       }
     }
     println("[stop]CommandThread = ${commandPath}")
