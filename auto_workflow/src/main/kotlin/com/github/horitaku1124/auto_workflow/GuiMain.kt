@@ -1,7 +1,6 @@
 package com.github.horitaku1124.auto_workflow
 
 import javafx.application.Application
-import javafx.beans.value.ChangeListener
 import javafx.scene.Scene
 import javafx.scene.control.Button
 import javafx.scene.control.ListView
@@ -9,10 +8,6 @@ import javafx.scene.control.TextArea
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.HBox
 import javafx.stage.Stage
-import javafx.beans.value.ObservableValue
-
-
-
 
 class GuiMain : Application() {
   private var execButton: Button = Button("Exe")
@@ -42,18 +37,18 @@ class GuiMain : Application() {
         if (threads[index] == null) {
           threads[index] = CommandThread(commands[index])
           threads[index]?.start()
+        } else if(threads[index]!!.isRunning()) {
+          threads[index]!!.halt()
+          threads[index] = null;
         }
       }
     }
-    commandEdit.textProperty().addListener(object : ChangeListener<String> {
-      override fun changed(observable: ObservableValue<out String>, oldValue: String, newValue: String) {
-
-        if(!listView.selectionModel.selectedIndices.isEmpty()) {
-          var index = listView.selectionModel.selectedIndices[0]
-          commands[index] = commandEdit.text
-        }
+    commandEdit.textProperty().addListener { observable, oldValue, newValue ->
+      if(!listView.selectionModel.selectedIndices.isEmpty()) {
+        var index = listView.selectionModel.selectedIndices[0]
+        commands[index] = commandEdit.text
       }
-    })
+    }
 
     commandEdit.isWrapText = true
     rightPane.top = execButton
