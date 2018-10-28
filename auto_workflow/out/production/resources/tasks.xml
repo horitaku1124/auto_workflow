@@ -1,4 +1,0 @@
-<tasks>
-    <task name="PING"><![CDATA[ ping 192.168.1.1 ]]></task>
-    <task name="syslog"><![CDATA[ tail -f /var/log/system.log ]]></task>
-</tasks>
