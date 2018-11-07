@@ -13,6 +13,7 @@ import javax.xml.parsers.DocumentBuilderFactory
 
 class GuiMain : Application() {
   private var execButton: Button = Button("Exe")
+  private var stopButton: Button = Button("Stop")
   private var commandEdit: TextArea = TextArea("")
   private var logPath: TextArea = TextArea("")
   private val listView = ListView<String>()
@@ -24,6 +25,7 @@ class GuiMain : Application() {
 
     val mainPane = BorderPane()
     val rightPane = BorderPane()
+    val commandPane = BorderPane()
 
     var tasks = getTasks("./src/main/resources/tasks.xml")
 
@@ -49,6 +51,12 @@ class GuiMain : Application() {
         }
       }
     }
+    stopButton.setOnMouseClicked {
+      var index = listView.selectionModel.selectedIndices[0]
+      if(threads[index]!!.isRunning()) {
+        threads[index]!!.sendInt()
+      }
+    }
     commandEdit.textProperty().addListener { observable, oldValue, newValue ->
       if(!listView.selectionModel.selectedIndices.isEmpty()) {
         var index = listView.selectionModel.selectedIndices[0]
@@ -57,7 +65,9 @@ class GuiMain : Application() {
     }
 
     commandEdit.isWrapText = true
-    rightPane.top = execButton
+    commandPane.left = execButton
+    commandPane.center = stopButton
+    rightPane.top = commandPane
     rightPane.center = commandEdit
     rightPane.bottom = logPath
 
