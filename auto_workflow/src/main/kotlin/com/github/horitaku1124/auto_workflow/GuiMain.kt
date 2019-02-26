@@ -9,7 +9,9 @@ import javafx.scene.layout.BorderPane
 import javafx.scene.layout.HBox
 import javafx.stage.Stage
 import org.xml.sax.InputSource
+import java.util.*
 import javax.xml.parsers.DocumentBuilderFactory
+
 
 class GuiMain : Application() {
   private var execButton: Button = Button("Exe")
@@ -20,6 +22,7 @@ class GuiMain : Application() {
   private var commands = arrayListOf<String>()
   private var threads = arrayOfNulls<CommandThread>(3)
 
+  var timer1: Timer = Timer()
   override fun start(primaryStage: Stage) {
     primaryStage.title = "Workflow"
 
@@ -33,7 +36,10 @@ class GuiMain : Application() {
       listView.items.add(task.first)
       commands.add(task.second!!)
     }
-
+    primaryStage.setOnCloseRequest { event ->
+      println("Stage is closing")
+      timer1.cancel()
+    }
 
     listView.setOnMouseClicked {
       var index = listView.selectionModel.selectedIndices[0]
@@ -55,6 +61,8 @@ class GuiMain : Application() {
       var index = listView.selectionModel.selectedIndices[0]
       if(threads[index]!!.isRunning()) {
         threads[index]!!.sendInt()
+      } else {
+        threads[index] = null
       }
     }
     commandEdit.textProperty().addListener { observable, oldValue, newValue ->
@@ -63,6 +71,19 @@ class GuiMain : Application() {
         commands[index] = commandEdit.text
       }
     }
+    val task = object : TimerTask() {
+      override fun run() {
+        for (i in 0 until threads.size) {
+          if (threads[i] != null) {
+            if (!threads[i]!!.isAlive) {
+              threads[i] = null
+            }
+          }
+        }
+//        println("timer tick")
+      }
+    }
+    timer1.scheduleAtFixedRate(task, 500, 500)
 
     commandEdit.isWrapText = true
     commandPane.left = execButton

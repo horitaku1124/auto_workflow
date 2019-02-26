@@ -4,12 +4,14 @@ import java.io.InputStreamReader
 import java.io.BufferedReader
 
 class CommandThread(var commandPath: String) : Thread() {
+  private val OS = System.getProperty("os.name").toLowerCase()
+  private val isWindows = OS.indexOf("win") >= 0
   var child: Process? = null
   var processId: Int? = null
   val getPid = """PID=(\d+)""".toRegex()
   override fun run() {
     println("[start]CommandThread = ${commandPath}")
-    commandPath = "./signal ${commandPath}"
+    commandPath = if (isWindows) "signal.exe ${commandPath}" else "./signal ${commandPath}"
     child = Runtime.getRuntime().exec(commandPath)
 //    child.waitFor()
 
@@ -49,7 +51,8 @@ class CommandThread(var commandPath: String) : Thread() {
 
   fun sendInt() {
     println("[kill]start ${processId}")
-    var interrupt = Runtime.getRuntime().exec("kill -SIGINT ${processId}")
+    var command = if (isWindows) "Taskkill /PID  ${processId}" else "kill -SIGINT ${processId}"
+    var interrupt = Runtime.getRuntime().exec(command)
     val stdin = BufferedReader(InputStreamReader(interrupt.inputStream))
     val stderr = BufferedReader(InputStreamReader(interrupt.errorStream))
     while(interrupt.isAlive) {
