@@ -51,7 +51,7 @@ class CommandThread(var commandPath: String) : Thread() {
 
   fun sendInt() {
     println("[kill]start ${processId}")
-    var command = if (isWindows) "Taskkill /PID  ${processId}" else "kill -SIGINT ${processId}"
+    var command = if (isWindows) "Taskkill /PID  ${processId} /f" else "kill -SIGINT ${processId}"
     var interrupt = Runtime.getRuntime().exec(command)
     val stdin = BufferedReader(InputStreamReader(interrupt.inputStream))
     val stderr = BufferedReader(InputStreamReader(interrupt.errorStream))
