@@ -1,5 +1,6 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.2.60'
+    id 'org.openjfx.javafxplugin' version '0.0.7'
 }
 
 group 'com.github.horitaku1124'
@@ -11,8 +12,11 @@ repositories {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    compile "org.openjfx:javafx-controls:11.0.2"
 }
-
+javafx {
+    modules = [ 'javafx.controls' ]
+}
 compileKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
