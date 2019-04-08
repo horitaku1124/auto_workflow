@@ -1,0 +1,6 @@
+{
+  "start": "zsh",
+  "if_started": {
+    "sendKeys": "exit"
+  }
+}
