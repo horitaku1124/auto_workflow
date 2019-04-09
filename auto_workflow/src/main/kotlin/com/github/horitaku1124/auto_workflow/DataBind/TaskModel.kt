@@ -3,20 +3,22 @@ package com.github.horitaku1124.auto_workflow.DataBind
 import com.fasterxml.jackson.databind.JsonNode
 import java.util.*
 
-class IfStarted {
+class TaskModel {
   var sendKeys: String? = null
   var delay: Long = 0
   companion object {
-    fun load(jsonNode: JsonNode): Optional<IfStarted> {
-      val isStarted = jsonNode.findValue("if_started") ?: return Optional.empty()
-      val obj = IfStarted()
+    fun load(jsonNode: JsonNode?): Optional<TaskModel> {
+      if (jsonNode == null) {
+        return Optional.empty()
+      }
+      val obj = TaskModel()
 
-      isStarted["sendKeys"].also {
+      jsonNode["sendKeys"].also {
         if (it != null) {
           obj.sendKeys = it.textValue()
         }
       }
-      isStarted["delay"].also {
+      jsonNode["delay"].also {
         if (it != null) {
           obj.delay = it.asLong()
         }

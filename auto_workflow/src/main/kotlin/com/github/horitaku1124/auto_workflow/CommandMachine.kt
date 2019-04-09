@@ -1,7 +1,7 @@
 package com.github.horitaku1124.auto_workflow
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.github.horitaku1124.auto_workflow.DataBind.IfStarted
+import com.github.horitaku1124.auto_workflow.DataBind.TaskModel
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.nio.file.Files
@@ -20,13 +20,25 @@ class CommandMachine {
 
       val mapper = ObjectMapper()
       val readTree = mapper.readTree(readAllLines)
-      val start = readTree.get("start")
-      var command = start.textValue()
-      println(start)
+      var tasks = arrayListOf<TaskModel>()
+      var command = readTree.get("start").textValue()
+      var taskValues = readTree.findValues("tasks")
+      if (taskValues != null) {
+        for (taskValue in taskValues) {
+          for (task in taskValue.toMutableList()) {
+            var taskModel = TaskModel.load(task)
+            if (taskModel.isPresent) {
+              tasks.add(taskModel.get())
+            }
+          }
+        }
+      }
 
-      var ifStarted = IfStarted.load(readTree)
+      println(command)
 
+      var ifStarted = TaskModel.load(readTree.findValue("if_started"))
       var execCommands = if (isWindows) arrayListOf("cmd.exe", "/C") else arrayListOf("/bin/bash", "-c")
+      var finallyTask = TaskModel.load(readTree.findValue("finally"))
 //      execCommands.addAll(command.split(" "))
       execCommands.add(command)
 //      execCommands.add("\"" + command + "\"")
@@ -37,7 +49,8 @@ class CommandMachine {
       var stderr = BufferedReader(InputStreamReader(process.errorStream))
       var stdout = process.outputStream.buffered()
 
-      var executedIfStarted = false
+      var ifStartedCompleted = ifStarted.isEmpty
+      var tasksCompleted = tasks.isEmpty()
       while(process.isAlive) {
         var line: String?
         if (stdin.ready()) {
@@ -47,10 +60,33 @@ class CommandMachine {
           line = stderr.readLine()
           System.err.println(line)
         } else {
-          if (!executedIfStarted && ifStarted.isPresent) {
+          if (!ifStartedCompleted && ifStarted.isPresent) {
             var task = ifStarted.get()
             println(" ifStarted.isPresent")
-            executedIfStarted = true
+            ifStartedCompleted = true
+            if (task.delay > 0) {
+              TimeUnit.MILLISECONDS.sleep(task.delay)
+            }
+            stdout.write((task.sendKeys + "\n").toByteArray())
+            stdout.flush()
+          } else if (ifStartedCompleted && !tasksCompleted) {
+            if (tasks.isEmpty()) {
+              tasksCompleted = true
+            } else {
+              var task = tasks[0]
+              tasks.remove(task)
+
+              println(" task")
+              ifStartedCompleted = true
+              if (task.delay > 0) {
+                TimeUnit.MILLISECONDS.sleep(task.delay)
+              }
+              stdout.write((task.sendKeys + "\n").toByteArray())
+              stdout.flush()
+            }
+          } else if (ifStartedCompleted && tasksCompleted) {
+            println(" finallyTask")
+            var task = finallyTask.get()
             if (task.delay > 0) {
               TimeUnit.MILLISECONDS.sleep(task.delay)
             }

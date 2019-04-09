@@ -1,6 +1,24 @@
 {
   "start": "zsh",
-  "if_started": {
+  "tasks": [
+    {
+      "delay": 1000,
+      "sendKeys": "date"
+    },
+    {
+      "delay": 1000,
+      "sendKeys": "date"
+    },
+    {
+      "delay": 1000,
+      "sendKeys": "date"
+    }
+  ],
+  "if_starteda": {
+    "delay": 100,
+    "sendKeys": "exit"
+  },
+  "finally": {
     "delay": 100,
     "sendKeys": "exit"
   }
