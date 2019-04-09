@@ -48,9 +48,13 @@ class CommandMachine {
           System.err.println(line)
         } else {
           if (!executedIfStarted && ifStarted.isPresent) {
+            var task = ifStarted.get()
             println(" ifStarted.isPresent")
             executedIfStarted = true
-            stdout.write((ifStarted.get().sendKeys + "\n").toByteArray())
+            if (task.delay > 0) {
+              TimeUnit.MILLISECONDS.sleep(task.delay)
+            }
+            stdout.write((task.sendKeys + "\n").toByteArray())
             stdout.flush()
           }
 

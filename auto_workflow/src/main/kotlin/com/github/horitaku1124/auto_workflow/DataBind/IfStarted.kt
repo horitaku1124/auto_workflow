@@ -5,6 +5,7 @@ import java.util.*
 
 class IfStarted {
   var sendKeys: String? = null
+  var delay: Long = 0
   companion object {
     fun load(jsonNode: JsonNode): Optional<IfStarted> {
       val isStarted = jsonNode.findValue("if_started") ?: return Optional.empty()
@@ -13,6 +14,11 @@ class IfStarted {
       isStarted["sendKeys"].also {
         if (it != null) {
           obj.sendKeys = it.textValue()
+        }
+      }
+      isStarted["delay"].also {
+        if (it != null) {
+          obj.delay = it.asLong()
         }
       }
       return Optional.of(obj)

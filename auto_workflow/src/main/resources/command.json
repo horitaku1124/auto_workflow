@@ -1,6 +1,7 @@
 {
   "start": "zsh",
   "if_started": {
+    "delay": 100,
     "sendKeys": "exit"
   }
 }
