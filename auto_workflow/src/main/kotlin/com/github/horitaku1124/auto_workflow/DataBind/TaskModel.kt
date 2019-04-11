@@ -6,6 +6,16 @@ import java.util.*
 class TaskModel {
   var sendKeys: String? = null
   var delay: Long = 0
+
+
+
+  constructor() {
+
+  }
+  constructor(command: String) {
+    sendKeys = command
+  }
+
   companion object {
     fun load(jsonNode: JsonNode?): Optional<TaskModel> {
       if (jsonNode == null) {
