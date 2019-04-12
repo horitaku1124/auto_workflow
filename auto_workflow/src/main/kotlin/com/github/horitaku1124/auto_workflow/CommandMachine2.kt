@@ -53,8 +53,8 @@ class CommandMachine2 {
           .start()
 
 
-      var stdin = BufferedReader(InputStreamReader(process.inputStream))
-      var stderr = BufferedReader(InputStreamReader(process.errorStream))
+      var stdin = InputStreamReader(process.inputStream)
+      var stderr = InputStreamReader(process.errorStream)
       var stdout = process.outputStream.buffered()
 
 
@@ -63,11 +63,13 @@ class CommandMachine2 {
       while(process.isAlive) {
         var line: String?
         if (stdin.ready()) {
-          line = stdin.readLine()
-          println(line)
+          var buffer = CharArray(1024)
+          var len = stdin.read(buffer)
+          print(String(buffer, 0, len))
         } else if (stderr.ready()) {
-          line = stderr.readLine()
-          System.err.println(line)
+          var buffer = CharArray(1024)
+          var len = stderr.read(buffer)
+          System.err.print(String(buffer, 0, len))
         } else {
           if (futureTask == null) {
             if (!todo.isEmpty()) {
@@ -77,13 +79,13 @@ class CommandMachine2 {
                 futureTask = task
                 executeAt = System.currentTimeMillis() + task.delay
               } else {
-                println(" task -> ${task.sendKeys}")
+                println("${task.sendKeys}")
                 stdout.write((task.sendKeys + "\n").toByteArray())
                 stdout.flush()
               }
             }
           } else if (executeAt <= System.currentTimeMillis()) {
-            println(" task -> ${futureTask.sendKeys}")
+            println("${futureTask.sendKeys}")
             stdout.write((futureTask.sendKeys + "\n").toByteArray())
             stdout.flush()
             futureTask = null
@@ -93,7 +95,9 @@ class CommandMachine2 {
       }
 
       if (stderr.ready()) {
-        System.err.println(stderr.readLine())
+        var buffer = CharArray(1024)
+        var len = stderr.read(buffer)
+        System.err.println(String(buffer, 0, len))
       }
 
       println("Process finished.")
