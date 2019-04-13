@@ -13,15 +13,14 @@ class CommandMachine2 {
   companion object {
     private val OS = System.getProperty("os.name").toLowerCase()
     private val isWindows = OS.indexOf("win") >= 0
+    private val finishCommand = "exit"
     @JvmStatic
     fun main(args: Array<String>) {
-
       val readAllLines = Files.readAllLines(Paths.get(args[0])).joinToString("\n")
 
       val mapper = ObjectMapper()
       val readTree = mapper.readTree(readAllLines)
 
-      var command = readTree.get("start").textValue()
       var todo = arrayListOf<TaskModel>()
 
 
@@ -46,9 +45,16 @@ class CommandMachine2 {
         todo.add(finallyTask.get())
       }
 
+      var startCommand = readTree.get("start")
+      val execCommands: ArrayList<String>
+      if (startCommand == null) {
+        execCommands = if (isWindows) arrayListOf("cmd.exe") else arrayListOf("/bin/bash")
+      } else {
+        var command = startCommand.textValue()
+        execCommands = if (isWindows) arrayListOf("cmd.exe", "/C") else arrayListOf("/bin/bash", "-c")
+        execCommands.add(command)
+      }
 
-      var execCommands = if (isWindows) arrayListOf("cmd.exe", "/C") else arrayListOf("/bin/bash", "-c")
-      execCommands.add(command)
       var process = ProcessBuilder(execCommands)
           .start()
 
@@ -56,12 +62,15 @@ class CommandMachine2 {
       var stdin = InputStreamReader(process.inputStream)
       var stderr = InputStreamReader(process.errorStream)
       var stdout = process.outputStream.buffered()
-
+      var sendKeysToStdout = { str:String? ->
+        stdout.write(str!!.toByteArray())
+        stdout.write((if (isWindows) "\r\n" else "\n").toByteArray())
+        stdout.flush()
+      }
 
       var futureTask: TaskModel? = null
       var executeAt = 0L
       while(process.isAlive) {
-        var line: String?
         if (stdin.ready()) {
           var buffer = CharArray(1024)
           var len = stdin.read(buffer)
@@ -80,14 +89,14 @@ class CommandMachine2 {
                 executeAt = System.currentTimeMillis() + task.delay
               } else {
                 println("${task.sendKeys}")
-                stdout.write((task.sendKeys + "\n").toByteArray())
-                stdout.flush()
+                sendKeysToStdout(task.sendKeys)
               }
+            } else {
+              sendKeysToStdout(finishCommand)
             }
           } else if (executeAt <= System.currentTimeMillis()) {
             println("${futureTask.sendKeys}")
-            stdout.write((futureTask.sendKeys + "\n").toByteArray())
-            stdout.flush()
+            sendKeysToStdout(futureTask.sendKeys)
             futureTask = null
           }
         }

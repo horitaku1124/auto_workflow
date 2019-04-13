@@ -1,0 +1,10 @@
+{
+  "tasks": [
+    {
+      "sendKeys": "docker images"
+    },
+    {
+      "sendKeys": "docker ps"
+    }
+  ]
+}
