@@ -1,0 +1,3 @@
+{
+  "initialize_script": "./src/main/resources/add_tasks.js"
+}

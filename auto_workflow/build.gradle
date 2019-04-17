@@ -14,6 +14,9 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     compile "org.openjfx:javafx-controls:11.0.2"
     compile "com.fasterxml.jackson.core:jackson-databind:2.2.3"
+    compile "org.graalvm.js:js:1.0.0-rc10"
+    compile "org.graalvm.js:js-scriptengine:1.0.0-rc10"
+    compile "org.graalvm.js:truffle-api:1.0.0-rc10"
 }
 javafx {
     modules = [ 'javafx.controls' ]

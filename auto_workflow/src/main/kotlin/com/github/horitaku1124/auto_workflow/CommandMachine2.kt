@@ -2,6 +2,7 @@ package com.github.horitaku1124.auto_workflow
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.horitaku1124.auto_workflow.DataBind.TaskModel
+import org.graalvm.polyglot.Context
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.nio.file.Files
@@ -40,6 +41,22 @@ class CommandMachine2 {
           }
         }
       }
+
+
+      var initializeScript = readTree.findValue("initialize_script")
+      if (initializeScript != null) {
+        var initFile = Paths.get(initializeScript.textValue())
+        var beforeLint = arrayListOf("(function(){\n", "let data = 10;")
+        var allLine = Files.readAllLines(initFile)
+        beforeLint.addAll(allLine)
+        beforeLint.add("return JSON.stringify(addTask(data));")
+        beforeLint.add("})")
+        val context = Context.create("js")
+        val function = context.eval("js", beforeLint.joinToString("\n"))
+        val x = function.invokeMember("call")
+        println("x=$x")
+      }
+
       var finallyTask = TaskModel.load(readTree.findValue("finally"))
       if (finallyTask.isPresent) {
         todo.add(finallyTask.get())
