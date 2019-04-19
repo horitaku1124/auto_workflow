@@ -3,7 +3,6 @@ package com.github.horitaku1124.auto_workflow
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.horitaku1124.auto_workflow.DataBind.TaskModel
 import org.graalvm.polyglot.Context
-import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -53,8 +52,24 @@ class CommandMachine2 {
         beforeLint.add("})")
         val context = Context.create("js")
         val function = context.eval("js", beforeLint.joinToString("\n"))
-        val x = function.invokeMember("call")
-        println("x=$x")
+        val jsonStr = function.invokeMember("call")
+        println("json=$jsonStr")
+        if (jsonStr.isString) {
+          val json = mapper.readTree(jsonStr.asString())
+          if (json.isArray) {
+            for (item in json.iterator()) {
+              println("add task=${item.textValue()}")
+              val task = TaskModel()
+              task.delay = 100
+              task.sendKeys = item.textValue()
+              todo.add(task)
+            }
+          } else {
+            throw RuntimeException("error")
+          }
+        } else {
+          throw RuntimeException("error")
+        }
       }
 
       var finallyTask = TaskModel.load(readTree.findValue("finally"))
