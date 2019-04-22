@@ -113,7 +113,7 @@ class CommandMachine2 {
           System.err.print(String(buffer, 0, len))
         } else {
           if (futureTask == null) {
-            if (!todo.isEmpty()) {
+            if (todo.isNotEmpty()) {
               var task = todo[0]
               todo.remove(task)
               if (task.delay > 0) {
