@@ -2,8 +2,9 @@
   "tasks":
   [
     {
+      "time_limit": 5000,
       "sendKeys": "ping -c 10 localhost",
-      "if_match_finish": "icmp_seq=2"
+      "if_match_finish": "icmp_seq=11"
     }
   ],
   "finally": {

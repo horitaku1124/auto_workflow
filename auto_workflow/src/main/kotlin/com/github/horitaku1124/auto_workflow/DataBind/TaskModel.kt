@@ -7,6 +7,7 @@ class TaskModel {
   var sendKeys: String? = null
   var delay: Long = 0
   var ifMatchFinish: Regex? = null
+  var timeLimit: Long = 0
 
   constructor() {
 
@@ -35,6 +36,11 @@ class TaskModel {
       jsonNode["if_match_finish"].also {
         if (it != null) {
           obj.ifMatchFinish = Regex(pattern = it.textValue())
+        }
+      }
+      jsonNode["time_limit"].also {
+        if (it != null) {
+          obj.timeLimit = it.asLong()
         }
       }
       return Optional.of(obj)

@@ -104,6 +104,7 @@ class CommandMachine2 {
       var futureTask: TaskModel? = null
       var executeAt = 0L
       var ifMatchTask: TaskModel? = null
+      var finishAt = 0L
       while(process.isAlive) {
         var line: String? = null
         if (stdin.ready()) {
@@ -114,7 +115,10 @@ class CommandMachine2 {
           System.err.print(line)
         } else {
           if (ifMatchTask != null) {
-
+            if (finishAt > 0 && finishAt <= System.currentTimeMillis()) {
+              println("time over")
+              ifMatchTask = null
+            }
           } else if (futureTask == null) {
             if (todo.isNotEmpty()) {
               var task = todo[0]
@@ -123,6 +127,9 @@ class CommandMachine2 {
                 ifMatchTask = task
                 println("${task.sendKeys}")
                 sendKeysToStdout(task.sendKeys)
+                if (task.timeLimit > 0) {
+                  finishAt = System.currentTimeMillis() + task.timeLimit
+                }
               } else if (task.delay > 0) {
                 futureTask = task
                 executeAt = System.currentTimeMillis() + task.delay
