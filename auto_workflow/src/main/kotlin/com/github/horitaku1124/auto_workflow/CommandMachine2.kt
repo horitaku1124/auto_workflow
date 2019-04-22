@@ -13,7 +13,7 @@ class CommandMachine2 {
   companion object {
     private val OS = System.getProperty("os.name").toLowerCase()
     private val isWindows = OS.indexOf("win") >= 0
-    private val finishCommand = "exit"
+    private const val finishCommand = "exit"
     @JvmStatic
     fun main(args: Array<String>) {
       val readAllLines = Files.readAllLines(Paths.get(args[0])).joinToString("\n")
@@ -42,6 +42,7 @@ class CommandMachine2 {
       }
 
 
+      // TODO separate into another
       var initializeScript = readTree.findValue("initialize_script")
       if (initializeScript != null) {
         var initFile = Paths.get(initializeScript.textValue())
@@ -102,21 +103,27 @@ class CommandMachine2 {
 
       var futureTask: TaskModel? = null
       var executeAt = 0L
+      var ifMatchTask: TaskModel? = null
       while(process.isAlive) {
+        var line: String? = null
         if (stdin.ready()) {
-          var buffer = CharArray(1024)
-          var len = stdin.read(buffer)
-          print(String(buffer, 0, len))
+          line = readString(stdin)
+          print(line)
         } else if (stderr.ready()) {
-          var buffer = CharArray(1024)
-          var len = stderr.read(buffer)
-          System.err.print(String(buffer, 0, len))
+          line = readString(stderr)
+          System.err.print(line)
         } else {
-          if (futureTask == null) {
+          if (ifMatchTask != null) {
+
+          } else if (futureTask == null) {
             if (todo.isNotEmpty()) {
               var task = todo[0]
               todo.remove(task)
-              if (task.delay > 0) {
+              if (task.ifMatchFinish != null) {
+                ifMatchTask = task
+                println("${task.sendKeys}")
+                sendKeysToStdout(task.sendKeys)
+              } else if (task.delay > 0) {
                 futureTask = task
                 executeAt = System.currentTimeMillis() + task.delay
               } else {
@@ -132,16 +139,25 @@ class CommandMachine2 {
             futureTask = null
           }
         }
+        if (line != null && ifMatchTask != null) {
+          if (ifMatchTask.ifMatchFinish!!.containsMatchIn(line)) {
+            ifMatchTask = null
+          }
+        }
         TimeUnit.MILLISECONDS.sleep(50)
       }
 
       if (stderr.ready()) {
-        var buffer = CharArray(1024)
-        var len = stderr.read(buffer)
-        System.err.println(String(buffer, 0, len))
+        System.err.println(readString(stderr))
       }
 
       println("Process finished.")
     }
+    fun readString(input: InputStreamReader, readByte:Int = 1024):String {
+      val buffer = CharArray(readByte)
+      val len = input.read(buffer)
+      return  String(buffer, 0, len)
+    }
   }
+
 }

@@ -1,0 +1,13 @@
+{
+  "tasks":
+  [
+    {
+      "sendKeys": "ping -c 10 localhost",
+      "if_match_finish": "icmp_seq=2"
+    }
+  ],
+  "finally": {
+    "delay": 100,
+    "sendKeys": "exit"
+  }
+}

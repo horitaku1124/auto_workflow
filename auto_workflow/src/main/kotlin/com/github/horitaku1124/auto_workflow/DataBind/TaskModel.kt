@@ -6,8 +6,7 @@ import java.util.*
 class TaskModel {
   var sendKeys: String? = null
   var delay: Long = 0
-
-
+  var ifMatchFinish: Regex? = null
 
   constructor() {
 
@@ -31,6 +30,11 @@ class TaskModel {
       jsonNode["delay"].also {
         if (it != null) {
           obj.delay = it.asLong()
+        }
+      }
+      jsonNode["if_match_finish"].also {
+        if (it != null) {
+          obj.ifMatchFinish = Regex(pattern = it.textValue())
         }
       }
       return Optional.of(obj)
