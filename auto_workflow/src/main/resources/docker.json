@@ -6,5 +6,6 @@
     {
       "sendKeys": "docker ps"
     }
-  ]
+  ],
+  "console_log": "docker.log"
 }

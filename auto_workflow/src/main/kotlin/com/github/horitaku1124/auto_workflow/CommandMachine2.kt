@@ -3,6 +3,8 @@ package com.github.horitaku1124.auto_workflow
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.horitaku1124.auto_workflow.DataBind.TaskModel
 import org.graalvm.polyglot.Context
+import java.io.BufferedWriter
+import java.io.FileOutputStream
 import java.io.InputStreamReader
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -14,6 +16,7 @@ class CommandMachine2 {
     private val OS = System.getProperty("os.name").toLowerCase()
     private val isWindows = OS.indexOf("win") >= 0
     private const val finishCommand = "exit"
+    private var consoleLogger: BufferedWriter? = null
     @JvmStatic
     fun main(args: Array<String>) {
       val readAllLines = Files.readAllLines(Paths.get(args[0])).joinToString("\n")
@@ -39,6 +42,10 @@ class CommandMachine2 {
             }
           }
         }
+      }
+      var consoleLog = readTree.findValue("console_log")
+      if (consoleLog != null) {
+        consoleLogger = Paths.get(consoleLog.textValue()).toFile().outputStream().bufferedWriter()
       }
 
 
@@ -110,9 +117,19 @@ class CommandMachine2 {
         if (stdin.ready()) {
           line = readString(stdin)
           print(line)
+
+          if (consoleLogger != null) {
+            consoleLogger!!.write(line)
+            consoleLogger!!.newLine()
+          }
         } else if (stderr.ready()) {
           line = readString(stderr)
           System.err.print(line)
+
+          if (consoleLogger != null) {
+            consoleLogger!!.write(line)
+            consoleLogger!!.newLine()
+          }
         } else {
           if (ifMatchTask != null) {
             if (finishAt > 0 && finishAt <= System.currentTimeMillis()) {
@@ -155,7 +172,15 @@ class CommandMachine2 {
       }
 
       if (stderr.ready()) {
-        System.err.println(readString(stderr))
+        val line = readString(stderr)
+        System.err.println(line)
+        if (consoleLogger != null) {
+          consoleLogger!!.write(line)
+          consoleLogger!!.newLine()
+        }
+      }
+      if (consoleLog != null) {
+        consoleLogger!!.close()
       }
 
       println("Process finished.")
