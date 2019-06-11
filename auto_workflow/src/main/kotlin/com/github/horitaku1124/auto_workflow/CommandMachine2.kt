@@ -81,7 +81,7 @@ class CommandMachine2 {
       var startCommand = readTree.get("start")
       val execCommands: ArrayList<String>
       if (startCommand == null) {
-        execCommands = if (isWindows) arrayListOf("cmd.exe") else arrayListOf("/bin/bash")
+        execCommands = if (isWindows) arrayListOf("cmd.exe") else arrayListOf("/bin/bash", "-i")
       } else {
         var command = startCommand.textValue()
         execCommands = if (isWindows) arrayListOf("cmd.exe", "/C") else arrayListOf("/bin/bash", "-c")
